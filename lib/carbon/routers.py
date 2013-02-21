@@ -70,8 +70,12 @@ class ConsistentHashingRouter(DatapointRouter):
       port = self.instance_ports[ (server, instance) ]
       yield (server, port, instance)
 
+  #def getKey(self, metric):
+  #  return metric
+
   def getKey(self, metric):
-    return metric
+    #RBA: modification done to ensure that all the metrics to be aggregated are processed by the same aggregator
+    return metric.rsplit('.',1)[0]
 
   def setKeyFunction(self, func):
     self.getKey = func
