@@ -46,6 +46,10 @@ class ConsistentHashingRouter(DatapointRouter):
     self.instance_ports = {} # { (server, instance) : port }
     self.ring = ConsistentHashRing([])
 
+    # Temporary hack to drop some offensive metrics
+    self.drop_re = re.compile('.*\.TimeBucket\..*')
+    self.drop_re2 = re.compile('.*\.Data\..*')
+
   def addDestination(self, destination):
     (server, port, instance) = destination
     if (server, instance) in self.instance_ports:
@@ -61,6 +65,12 @@ class ConsistentHashingRouter(DatapointRouter):
     self.ring.remove_node( (server, instance) )
 
   def getDestinations(self, metric):
+
+    if self.drop_re.match(metric):
+        return
+    if self.drop_re2.match(metric):
+        return
+
     key = self.getKey(metric)
 
     for count,node in enumerate(self.ring.get_nodes(key)):
