@@ -50,6 +50,9 @@ class ConsistentHashingRouter(DatapointRouter):
     self.drop_re = re.compile('.*\.TimeBucket\..*')
     self.drop_re2 = re.compile('.*\.Data\..*')
 
+    #Second temporary hack to avoid agglo on some case where not appropriate
+    self.no_agglo = re.compile('^criteo\.cas\.counter\.sum\.displays\..*')
+
   def addDestination(self, destination):
     (server, port, instance) = destination
     if (server, instance) in self.instance_ports:
@@ -84,6 +87,8 @@ class ConsistentHashingRouter(DatapointRouter):
   #  return metric
 
   def getKey(self, metric):
+    if self.no_agglo.match(metric):
+        return metric
     #RBA: modification done to ensure that all the metrics to be aggregated are processed by the same aggregator
     return metric.rsplit('.',1)[0]
 
