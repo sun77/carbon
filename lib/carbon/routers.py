@@ -1,6 +1,7 @@
 import imp
 from carbon.relayrules import loadRelayRules
 from carbon.hashing import ConsistentHashRing
+import re
 
 
 class DatapointRouter:
