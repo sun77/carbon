@@ -1,6 +1,7 @@
 import sys
 import os
 import pwd
+import re
 
 from os.path import abspath, basename, dirname, join
 try:
@@ -109,7 +110,13 @@ def parseDestinations(destination_strings):
 
   return destinations
 
+def parseDropped(dropped_strings):
+  dropped = []
 
+  for dropped_string in dropped_strings:
+    dropped.append(re.compile(dropped_string))
+
+  return dropped
 
 # This whole song & dance is due to pickle being insecure
 # yet performance critical for carbon. We leave the insecure

@@ -180,7 +180,8 @@ def createRelayService(config):
     if settings.RELAY_METHOD == 'rules':
       router = RelayRulesRouter(settings["relay-rules"])
     elif settings.RELAY_METHOD == 'consistent-hashing':
-      router = ConsistentHashingRouter(settings.REPLICATION_FACTOR)
+      dropped = util.parseDropped(settings.DROPPED)
+      router = ConsistentHashingRouter(settings.REPLICATION_FACTOR, dropped)
 
     client_manager = CarbonClientManager(router)
     client_manager.setServiceParent(root_service)

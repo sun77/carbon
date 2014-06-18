@@ -3,7 +3,6 @@ from carbon.relayrules import loadRelayRules
 from carbon.hashing import ConsistentHashRing
 import re
 
-
 class DatapointRouter:
   "Interface for datapoint routing logic implementations"
 
@@ -42,14 +41,11 @@ class RelayRulesRouter(DatapointRouter):
 
 
 class ConsistentHashingRouter(DatapointRouter):
-  def __init__(self, replication_factor=1):
+  def __init__(self, replication_factor=1, dropped=[]):
     self.replication_factor = int(replication_factor)
     self.instance_ports = {} # { (server, instance) : port }
     self.ring = ConsistentHashRing([])
-
-    # Temporary hack to drop some offensive metrics
-    self.drop_re = re.compile('.*\.TimeBucket\..*')
-    self.drop_re2 = re.compile('.*\.Data\..*')
+    self.dropped = dropped
 
     #Second temporary hack to avoid agglo on some case where not appropriate
     self.no_agglo = re.compile('^criteo\.cas\.counter\.sum\.displays\..*')
@@ -70,9 +66,8 @@ class ConsistentHashingRouter(DatapointRouter):
 
   def getDestinations(self, metric):
 
-    if self.drop_re.match(metric):
-        return
-    if self.drop_re2.match(metric):
+    for to_drop in self.dropped:
+      if to_drop.match(metric):
         return
 
     key = self.getKey(metric)
