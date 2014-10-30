@@ -56,6 +56,9 @@ class ConsistentHashingRouter(DatapointRouter):
     #Second temporary hack to avoid agglo on some case where not appropriate
     self.no_agglo = re.compile('^criteo\.cas\.counter\.sum\.displays\..*')
 
+    #Third hack to clean metric names before hashing
+    self.clean_chars = re.compile(r'(/)|(\.\W+)')
+
   def addDestination(self, destination):
     (server, port, instance) = destination
     if (server, instance) in self.instance_ports:
@@ -97,6 +100,7 @@ class ConsistentHashingRouter(DatapointRouter):
     if self.no_agglo.match(metric):
         return metric
     #RBA: modification done to ensure that all the metrics to be aggregated are processed by the same aggregator
+    metric = self.clean_chars.sub('.', metric)
     return metric.rsplit('.',1)[0]
 
   def setKeyFunction(self, func):
