@@ -71,6 +71,8 @@ def run_twistd_plugin(filename):
         twistd_options.append("--profile")
     if options.pidfile:
         twistd_options.extend(["--pidfile", options.pidfile])
+    if options.syslog:
+        twistd_options.append("--syslog")
 
     # Now for the plugin-specific options.
     twistd_options.append(program)
@@ -80,7 +82,7 @@ def run_twistd_plugin(filename):
 
     for option_name, option_value in vars(options).items():
         if (option_value is not None and
-            option_name not in ("debug", "profile", "pidfile")):
+            option_name not in ("debug", "profile", "pidfile", "syslog")):
             twistd_options.extend(["--%s" % option_name.replace("_", "-"),
                                    option_value])
 
