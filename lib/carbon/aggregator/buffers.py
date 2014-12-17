@@ -43,9 +43,19 @@ class MetricBuffer:
     if interval in self.interval_buffers:
       buffer = self.interval_buffers[interval]
     else:
+      if self.is_too_old(interval):
+        log.listener("Metrics %s received too late %d" % (self.metric_path, timestamp))
       buffer = self.interval_buffers[interval] = IntervalBuffer(interval)
 
     buffer.input(datapoint)
+
+  def age_threshold(self):
+    now = int( time.time() )
+    current_interval = now - (now % self.aggregation_frequency)
+    return current_interval - (settings['MAX_AGGREGATION_INTERVALS'] * self.aggregation_frequency)
+
+  def is_too_old(self, interval):
+    return interval < self.age_threshold()
 
   def configure_aggregation(self, frequency, func):
     self.aggregation_frequency = int(frequency)
@@ -55,9 +65,6 @@ class MetricBuffer:
     self.configured = True
 
   def compute_value(self):
-    now = int( time.time() )
-    current_interval = now - (now % self.aggregation_frequency)
-    age_threshold = current_interval - (settings['MAX_AGGREGATION_INTERVALS'] * self.aggregation_frequency)
 
     for buffer in self.interval_buffers.values():
       if buffer.active:
@@ -67,7 +74,7 @@ class MetricBuffer:
         state.instrumentation.increment('aggregateDatapointsSent')
         buffer.mark_inactive()
 
-      if buffer.interval < age_threshold:
+      if self.is_too_old(buffer.interval):
         del self.interval_buffers[buffer.interval]
 
   def close(self):
