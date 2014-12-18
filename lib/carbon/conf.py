@@ -17,6 +17,8 @@ import sys
 import pwd
 import errno
 
+import __builtin__
+
 from os.path import join, dirname, normpath, exists, isdir
 from optparse import OptionParser
 from ConfigParser import ConfigParser
@@ -224,7 +226,8 @@ class CarbonCacheOptions(usage.Options):
         # are set to log to syslog, then use that instead.
         if not self["debug"]:
             if self.parent.get("syslog", None):
-                log.logToSyslog(self.parent["prefix"])
+                prefix = "%s-%s[%d]" % (__builtin__.program, self["instance"], os.getpid())
+                log.logToSyslog(prefix)
             elif not self.parent["nodaemon"]:
                 logdir = settings.LOG_DIR
                 if not isdir(logdir):
