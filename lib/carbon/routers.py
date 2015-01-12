@@ -48,10 +48,8 @@ class ConsistentHashingRouter(DatapointRouter):
     self.ring = ConsistentHashRing([])
 
     # Temporary hack to drop some offensive metrics
-    self.drop_re = re.compile('.*\.TimeBucket\..*')
-    self.drop_re2 = re.compile('.*\.Data\..*')
-    self.drop_re3 = re.compile('criteo\.cas\.counter\.avg\.rtb\.[A-Za-z]+\.display\.price_paid_eur\..*')
-    self.drop_re4 = re.compile('criteo\.cas\.counter\.sum\.passbacks\..*')
+    self.drop_re = re.compile('.*\.(Data|TimeBucket)\..*')
+    self.drop_re2 = re.compile('criteo\.cas\.counter\.(avg\.rtb\.[A-Za-z]+\.display\.price_paid_eur|sum\.passbacks)\..*')
 
     #Second temporary hack to avoid agglo on some case where not appropriate
     self.no_agglo = re.compile('^criteo\.cas\.counter\.sum\.displays\..*')
@@ -74,14 +72,7 @@ class ConsistentHashingRouter(DatapointRouter):
     self.ring.remove_node( (server, instance) )
 
   def getDestinations(self, metric):
-
-    if self.drop_re.match(metric):
-        return
-    if self.drop_re2.match(metric):
-        return
-    if self.drop_re3.match(metric):
-        return
-    if self.drop_re4.match(metric):
+    if self.drop_re.match(metric) or self.drop_re2.match(metric):
         return
 
     key = self.getKey(metric)
