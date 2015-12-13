@@ -121,6 +121,10 @@ def writeCachedDataPoints():
 
       try:
         t1 = time.time()
+        # If we have duplicated points, always pick the last. update_many()
+        # has no guaranted behavior for that, and in fact the current implementation
+        # will keep the first point in the list.
+        datapoints = dict(datapoints).items()
         whisper.update_many(dbFilePath, datapoints)
         t2 = time.time()
         updateTime = t2 - t1
